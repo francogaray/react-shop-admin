@@ -1,9 +1,9 @@
-import { addProduct } from "@services/api/products";
-import { useRef } from "react";
+import { addProduct, updateProduct } from "@services/api/products";
+import { useEffect, useRef } from "react";
 
-export default function FormProduct({ setOpen, setAlert }) {
+export default function FormProduct({ setOpen, setAlert, product }) {
   const formRef = useRef(null);
-
+  console.log(product);
   const handleSubmit = (event) => {
     event.preventDefault();
     const formData = new FormData(formRef.current);
@@ -11,19 +11,49 @@ export default function FormProduct({ setOpen, setAlert }) {
       title: formData.get("title"),
       price: parseInt(formData.get("price")),
       description: formData.get("description"),
-      categoryId: parseInt(formData.get("categoryId")),
+      categoryId: parseInt(formData.get("category")),
       images: [formData.get("images").name],
     };
-    addProduct(data).then(() => {
-      setAlert({
-        active: true,
-        message: "Product added successfully",
-        type: "success",
-        autoClose: false,
+
+    if (product) {
+      updateProduct(product.id, data).then(() => {
+        if (setAlert) {
+          setAlert({
+            active: true,
+            message: "Product update successfully",
+            type: "success",
+            autoClose: false,
+          });
+        }
       });
-      setOpen(false);
-    });
+    } else {
+      addProduct(data)
+        .then(() => {
+          setAlert({
+            active: true,
+            message: "Product added successfully",
+            type: "success",
+            autoClose: false,
+          });
+          setOpen(false);
+        })
+        .catch((error) => {
+          setAlert({
+            active: true,
+            message: error.message,
+            type: "error",
+            autoClose: false,
+          });
+        });
+    }
   };
+  useEffect(() => {
+    const categoryTag = document.querySelector("#category");
+    if (product?.category?.id) {
+      categoryTag.value = product?.category?.id;
+      console.log("categoryTag", categoryTag.value);
+    }
+  }, [product]);
 
   return (
     <form ref={formRef} onSubmit={handleSubmit}>
@@ -38,6 +68,7 @@ export default function FormProduct({ setOpen, setAlert }) {
                 Title
               </label>
               <input
+                defaultValue={product?.title}
                 type="text"
                 name="title"
                 id="title"
@@ -52,6 +83,7 @@ export default function FormProduct({ setOpen, setAlert }) {
                 Price
               </label>
               <input
+                defaultValue={product?.price}
                 type="number"
                 name="price"
                 id="price"
@@ -60,17 +92,21 @@ export default function FormProduct({ setOpen, setAlert }) {
             </div>
             <div className="col-span-6">
               <label
-                htmlFor="categoryId"
+                htmlFor="category"
                 className="block text-sm font-medium text-gray-700"
               >
                 Category
               </label>
               <select
-                id="categoryId"
-                name="categoryId"
+                defaultValue={"Loading"}
+                id="category"
+                name="category"
                 autoComplete="category-name"
                 className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               >
+                <option value="Loading" disabled>
+                  Select a category
+                </option>
                 <option value="1">Clothes</option>
                 <option value="2">Electronics</option>
                 <option value="3">Furniture</option>
@@ -87,6 +123,7 @@ export default function FormProduct({ setOpen, setAlert }) {
                 Description
               </label>
               <textarea
+                defaultValue={product?.description}
                 name="description"
                 id="description"
                 autoComplete="description"
@@ -125,6 +162,7 @@ export default function FormProduct({ setOpen, setAlert }) {
                       >
                         <span>Upload a file</span>
                         <input
+                          defaultValue={product?.images}
                           id="images"
                           name="images"
                           type="file"

@@ -4,7 +4,7 @@ import Modal from "@common/Modal";
 import FormProduct from "@components/FormProduct";
 import axios from "axios";
 import endPoints from "@services/api";
-import Alert from "@common/alert";
+import Alert from "@common/Alert";
 import useAlert from "@hooks/useAlert";
 
 export default function Products() {
